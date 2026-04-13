@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// AUTH - NextAuth.js
+// ============================================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================
+// USER
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts  Account[]
+  sessions  Session[]
+  scans     Scan[]
+  trackers  BananaTracker[]
+}
+
+// ============================================
+// SCAN - Individual ripeness analysis
+// ============================================
+
+model Scan {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // Image data
+  imageUrl      String   @db.Text    // Base64 or stored URL
+  thumbnailUrl  String?  @db.Text    // Compressed thumbnail for list view
+
+  // AI analysis results
+  ripenessPercent  Int               // 0-100
+  stage            RipenessStage     // Enum
+  daysUntilSpoiled Int?              // Estimated days
+  color            String?           // "Yellow with brown spots"
+  recommendation   String   @db.Text // "Perfect for eating fresh"
+  recipe           String?  @db.Text // Banana bread recipe if overripe
+
+  // Relations
+  userId    String
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Optional: link to a tracker
+  trackerId String?
+  tracker   BananaTracker? @relation(fields: [trackerId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, createdAt])
+  @@index([trackerId])
+}
+
+enum RipenessStage {
+  UNRIPE        // 0-25%  - Green
+  NEARLY_RIPE   // 25-50% - Yellow-green
+  RIPE          // 50-75% - Yellow
+  OVERRIPE      // 75-100% - Brown spots
+}
+
+// ============================================
+// BANANA TRACKER - Track one banana over time
+// ============================================
+
+model BananaTracker {
+  id        String   @id @default(cuid())
+  name      String   @default("My Banana")  // User can name it
+  active    Boolean  @default(true)          // Still tracking?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Prediction
+  predictedSpoilDate DateTime?  // Based on ripeness trend
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scans  Scan[]
+
+  @@index([userId])
+}

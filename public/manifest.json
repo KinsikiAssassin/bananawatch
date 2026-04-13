@@ -1,0 +1,37 @@
+{
+  "name": "BananaWatch",
+  "short_name": "BananaWatch",
+  "description": "AI-powered banana ripeness analyzer — never eat a bad banana again.",
+  "start_url": "/scan",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#FBBF24",
+  "background_color": "#FFFBEB",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["food", "utilities"]
+}
